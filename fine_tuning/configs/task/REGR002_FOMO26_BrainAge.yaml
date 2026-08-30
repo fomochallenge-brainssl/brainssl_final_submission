@@ -1,0 +1,71 @@
+name: REGR002_FOMO26_BrainAge
+
+modality_slots: [1]
+
+dataset:
+  _target_: src.data.FOMO26Dataset
+  _partial_: true
+  rootdir: ${oc.env:FOMO_FINETUNING_DATA_ROOT}
+  df: processed_data/REGR002_FOMO26_BrainAge/participants.tsv
+  n_modalities: 1
+  num_classes: 1
+  folds: processed_data/REGR002_FOMO26_BrainAge/split_10foldsMCCV_20260724.json
+  folds_cols: participant_id
+  image_col: image_path
+  task_type: regression
+  name: REGR002_FOMO26_BrainAge
+
+probing:
+  finetuning: true
+  freeze_encoder: true
+  finetuning_kwargs:
+    lr: 1.0e-3              
+    encoder_lr_ratio: 1.0
+    weight_decay: 1e-2      
+    max_epochs: 40
+    log_every_n_steps: 22
+    loss: mse
+    devices: 1
+    num_sanity_val_steps: 0
+    enable_progress_bar: false
+    check_val_every_n_epoch: 1
+    lr_scheduler_params:
+      warmup_epochs: 4
+      warmup_start_lr: 1.0e-6   
+      eta_min: 0
+      last_epoch: -1
+  batch_size: 16
+  num_workers: 8
+  pin_memory: true
+  results_dir: ${oc.env:PROJECT_ROOT}/outputs/results/
+  random_state: 42
+  fold: 0
+  task_dir: ${task.name}/${task.probing.fold}
+  trainval_transform:
+    _target_: src.preprocessing.forward.ForwardPreprocessing
+    resample_target_spacing: 1.0
+    #resample_target_spacing: null
+    resizing_method: letterbox
+    target_shape: ${eval.target_shape}
+    image_interpolation: bspline
+    label_interpolation: nearest
+    normalization_transform:
+      _target_: nidl.volume.transforms.preprocessing.RobustRescaling
+      out_min_max:
+        _target_: builtins.tuple
+        _args_:
+          - [0.0, 1.0]
+      percentiles:
+        _target_: builtins.tuple
+        _args_:
+          - [0.5, 99.5]
+  test_transform: ${task.probing.trainval_transform}
+  # replace with statistics computed on pre-training/evaluation data
+  target_transform:
+    _target_: src.target_preprocessing.ZScoring
+    mean: 45.18421052631579
+    std: 17.4262028053959
+  invert_target_transform:
+    _target_: src.target_preprocessing.InvertZScoring
+    mean: ${task.probing.target_transform.mean}
+    std: ${task.probing.target_transform.std}

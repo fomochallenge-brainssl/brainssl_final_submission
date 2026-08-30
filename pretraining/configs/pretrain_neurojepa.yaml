@@ -1,0 +1,11 @@
+defaults:
+  - experiment: neurojepa_pretraining
+  - encoder: vit_neurojepa_moe
+  - model: neurojepa
+  - dataset: train_full_v3
+  - _self_
+
+hydra:
+  run:
+    dir: ${experiment.output_dir}
+  output_subdir: .hydra

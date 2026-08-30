@@ -1,0 +1,11 @@
+defaults:
+  - experiment: experiment_comm_neurojepa
+  - encoder: vit_neurojepa_moe
+  - model: comm_neurojepa
+  - dataset: train_multimodal
+  - _self_
+
+hydra:
+  run:
+    dir: ${oc.env:PRETRAINED_CHECKPOINTS_ROOT}/comm_neurojepa/${hydra:job.override_dirname}
+  output_subdir: .hydra

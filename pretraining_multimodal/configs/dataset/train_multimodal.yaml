@@ -1,0 +1,29 @@
+_target_: src.data.pretraining_dataset.PretrainingDataset
+_partial_: true
+_convert_: partial
+root: ${oc.env:FOMO_PRETRAINING_DATA_ROOT}
+patterns: [
+  "*/sub-*/ses-*/*/*_FLAIR.pt",
+  ["*/sub-*/ses-*/*/*_MP2RAGE.pt", "*/sub-*/ses-*/*/*_mp2rage.pt", "*/sub-*/ses-*/*/*_T1w.pt"],
+  "*/sub-*/ses-*/*/*_T1c.pt",
+  ["*/sub-*/ses-*/*/*_T2starw.pt", "*/sub-*/ses-*/*/*_gre.pt", "*/sub-*/ses-*/*/*_swi.pt"],
+  "*/sub-*/ses-*/*/*_T2w.pt",
+  # last pattern is for trace files
+  ["*/sub-*/ses-*/*/*_bval*.pt", "*/sub-*/ses-*/*/*_dwi.pt", "*/sub-*/ses-*/*/*_.pt"],   # all diffusion -> one slot
+]
+
+channels: [
+  "FLAIR",
+  "T1w",
+  "T1c",
+  "T2starw",
+  "T2w",
+  "dwi",
+]
+
+subject_in_patterns: -4
+dataset_in_patterns: -5
+# Multimodal CoMM mode. `n_views` must match experiment.transform.n_views.
+multimodal: true
+# number of augmented versions created for each multimodal representation
+n_views: 2

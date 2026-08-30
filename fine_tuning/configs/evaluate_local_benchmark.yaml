@@ -1,0 +1,12 @@
+defaults:
+  - eval: neurojepa_comm_light
+  - finetuning_callbacks@task.probing.finetuning_callbacks: none
+  - task: ???
+  - _self_
+
+exp_name: comm_neurojepa_evaluation
+
+hydra:
+  run:
+    dir: ${task.probing.results_dir}/${eval.model_name}/${exp_name}/${task.probing.task_dir}
+  output_subdir: .hydra

@@ -1,0 +1,12 @@
+defaults:
+  - eval: neurojepa_comm_light
+  - task: ???
+  - _self_
+
+exp_name: neurojepa_comm_light_v1_final_tuning
+use_last_checkpoint: false
+
+hydra:
+  run:
+    dir: ${task.probing.results_dir}/${eval.model_name}/${exp_name}/${task.probing.task_dir}
+  output_subdir: .hydra

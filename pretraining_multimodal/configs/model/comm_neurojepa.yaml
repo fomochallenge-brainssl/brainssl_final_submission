@@ -1,0 +1,48 @@
+_partial_: true
+_target_: src.multimodality.comm.CoMM
+_convert_: partial
+enc_ckpt: ???
+freeze_encoder: true
+# Neurojepa adapter is not learnable
+per_modality_adapter: false
+# Encoder is a transformer --> output is already a tokens sequence
+adapter:
+  _target_: src.multimodality.input_adapters.IdentityAdapter
+# Size of latent representation produced by encoder
+embed_dim: ${encoder.embed_dim}
+fusion: 'concat'
+# whether to add class token
+pool: 'cls'
+n_heads: 8
+n_layers: 2
+add_bias_kv: False
+dropout: 0.0
+
+# Projection head
+proj_hidden_dim: 512
+proj_output_dim: 256
+temperature: 0.1 # for CoMM infonce loss
+gather_loss: true
+
+
+learning_rate: 2.5e-4
+optimizer: 'adamW'
+weight_decay: 5.0e-4
+exclude_bias_and_norm_wd: True
+lr_scheduler: 'warmup_cosine'
+lr_scheduler_kwargs:
+  warmup_epochs: 8
+  warmup_start_lr: 1.0e-5
+  min_lr: 0.0
+  interval: 'step'
+max_epochs: 80
+
+check_val_every_n_epoch: 1
+use_distributed_sampler: True
+enable_checkpointing: True
+strategy:
+  _target_: pytorch_lightning.strategies.DDPStrategy
+  find_unused_parameters: true
+devices: 4
+num_nodes: 2
+precision: 'bf16-mixed'

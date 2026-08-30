@@ -1,0 +1,64 @@
+_partial_: true
+_target_: nidl.estimators.ssl.NeuroJEPA
+_convert_: partial
+
+mask_scale_configs:
+  - _target_: nidl.estimators.ssl.neurojepa.MaskScaleConfig
+    spatial_scale: [0.0, 0.2]
+    depth_scale: [0.0, 1.0]
+    aspect_ratio: [0.75, 1.5]
+    num_blocks: 32
+    total_mask_ratio: 0.75
+  - _target_: nidl.estimators.ssl.neurojepa.MaskScaleConfig
+    spatial_scale: [0.2, 0.5]
+    depth_scale: [0.0, 1.0]
+    aspect_ratio: [0.75, 1.5]
+    num_blocks: 16
+    total_mask_ratio: 0.75
+  - _target_: nidl.estimators.ssl.neurojepa.MaskScaleConfig
+    spatial_scale: [0.5, 0.7]
+    depth_scale: [0.0, 1.0]
+    aspect_ratio: [0.75, 1.5]
+    num_blocks: 4
+    total_mask_ratio: 0.75
+
+foreground_aware: true
+foreground_threshold: 0.0
+min_foreground_fraction: 0.1
+loss_exp: 1.0
+bg_weight: 0.1
+
+use_moe: ${encoder.use_moe}
+moe_bias_update_rate: 1e-4
+moe_bias_clip: 0.3
+
+predictor_embed_dim: 384
+predictor_depth: 12
+predictor_num_heads: 12
+
+optimizer: 'adamW'
+optimizer_kwargs:
+  betas: [0.9, 0.999]
+  eps: 1e-8
+ema_start: 0.99925
+ema_end: 0.99925
+learning_rate: 0.000525
+weight_decay: 0.04
+exclude_bias_and_norm_wd: true
+lr_scheduler: "warmup_cosine"
+lr_scheduler_kwargs:
+  warmup_epochs: 40
+  warmup_start_lr: 0.0001
+  min_lr: 1e-6
+  interval: "step"
+
+gradient_clip_val: 1.0
+max_epochs: 200
+check_val_every_n_epoch: 1
+
+use_distributed_sampler: True
+enable_checkpointing: True
+strategy: 'ddp'
+devices: 4
+num_nodes: 2
+precision: 'bf16-mixed'

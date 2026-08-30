@@ -1,0 +1,36 @@
+_target_: src.data.pretraining_dataset.PretrainingDataset
+_partial_: true
+_convert_: partial
+root: ${oc.env:FOMO_PRETRAINING_DATA_ROOT}
+
+patterns: [
+  "*/sub-*/ses-*/*/*_.pt",
+  "*/sub-*/ses-*/*/*_FLAIR.pt",
+  "*/sub-*/ses-*/*/*_MP2RAGE.pt",
+  "*/sub-*/ses-*/*/*_PDw.pt",
+  "*/sub-*/ses-*/*/*_T1c.pt",
+  "*/sub-*/ses-*/*/*_T1w.pt",
+  "*/sub-*/ses-*/*/*_T2starw.pt",
+  "*/sub-*/ses-*/*/*_T2w.pt",
+  "*/sub-*/ses-*/*/*_dwi.pt",
+  "*/sub-*/ses-*/*/*_gre.pt",
+  "*/sub-*/ses-*/*/*_mp2rage.pt",
+  "*/sub-*/ses-*/*/*_swi.pt",
+]
+
+channels: [
+  "",
+  "FLAIR",
+  "MP2RAGE",
+  "PDw",
+  "T1c",
+  "T1w",
+  "T2starw",
+  "T2w",
+  "dwi",
+  "gre",
+  "mp2rage",
+  "swi",
+]
+subject_in_patterns: -4
+dataset_in_patterns: -5

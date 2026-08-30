@@ -1,0 +1,25 @@
+defaults:
+  - experiment: neurojepa_final_pretraining_high_res
+  - encoder: vit_neurojepa_moe
+  - model: neurojepa
+  - dataset: train_full_v3
+  - _self_
+
+model:
+  learning_rate: 0.00005
+  lr_scheduler: "warmup_cosine"
+  lr_scheduler_kwargs:
+    warmup_epochs: 5
+    warmup_start_lr: 1e-6
+    min_lr: 1e-6
+    interval: "step"
+
+  max_epochs: 30
+  num_nodes: 4
+
+warm_start_ckpt: ???
+
+hydra:
+  run:
+    dir: ${experiment.output_dir}
+  output_subdir: .hydra

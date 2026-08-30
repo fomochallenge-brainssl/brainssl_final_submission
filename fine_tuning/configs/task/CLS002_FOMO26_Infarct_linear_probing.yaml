@@ -1,0 +1,47 @@
+name: CLS002_FOMO26_Infarct_linear_probing
+
+modality_slots: [0, 3, 5]
+
+dataset:
+  _target_: src.data.FOMO26Dataset
+  _partial_: true
+  rootdir: ${oc.env:FOMO_FINETUNING_DATA_ROOT}
+  df: processed_data/CLS002_FOMO26_Infarct/participants.tsv
+  n_modalities: 3
+  num_classes: 2
+  folds: processed_data/CLS002_FOMO26_Infarct/split_10foldsMCCV_20260724.json
+  folds_cols: participant_id
+  image_col: image_path
+  task_type: classification
+  name: CLS002_FOMO26_Infarct
+
+probing:
+  finetuning: false
+  estimator_kwargs:
+    devices: 1
+  save_embeddings: true
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  results_dir: ${oc.env:PROJECT_ROOT}/outputs/results/
+  task_dir: ${task.name}
+  # Pre-processing transform: resampling 1 mm iso bspline + letterbox bspline + robust rescaling
+  trainval_transform: null
+  test_transform:
+    _target_: src.preprocessing.forward.ForwardPreprocessing
+    keep_channels: [0, 2]
+    resample_target_spacing: 1.0
+    resizing_method: letterbox
+    target_shape: ${eval.target_shape}
+    image_interpolation: bspline
+    label_interpolation: nearest
+    normalization_transform:
+       _target_: nidl.volume.transforms.preprocessing.RobustRescaling
+       out_min_max:
+         _target_: builtins.tuple
+         _args_:
+           - [0.0, 1.0]
+       percentiles:
+         _target_: builtins.tuple
+         _args_:
+           - [0.5, 99.5]

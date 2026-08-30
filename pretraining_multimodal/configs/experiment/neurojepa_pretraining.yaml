@@ -1,0 +1,88 @@
+# Experiment configuration for CoMM multimodal pretraining
+img_size: 128                 # must match NeuroJEPA encoder's pretraining size
+in_channels: 1           # each modality is a single-channel volume
+batch_size: 64
+shuffle: True
+drop_last: True
+pin_memory: True
+num_workers: 8
+prefetch_factor: 1
+checkpoints_dir: ${oc.env:PRETRAINED_CHECKPOINTS_ROOT}/comm_neurojepa
+checkpointing_epochs: 1
+modalities_count: 1
+seed: 42
+accelerator: 'gpu'
+metrics:
+  path: ${oc.env:LOGS_PATH}
+  run_name: 'comm_neurojepa'
+  logging_interval: 1
+  
+# Multi-view stochastic transform, applied independently per modality
+# creates two augmented versions of the multimodal input representation
+transform:
+  _target_: nidl.transforms.MultiViewsTransform
+  transforms:
+    _target_: torchvision.transforms.Compose
+    transforms:
+      - _target_: nidl.volume.transforms.augmentation.RandomErasing
+        scale: 
+          _target_: builtins.tuple
+          _args_:
+            - [0., 0.6]
+        ratio: 
+          _target_: builtins.tuple
+          _args_:
+            - [1, 5]
+        value: 'mean'
+        p: 1
+      - _target_: nidl.volume.transforms.augmentation.RandomResizedCrop
+        target_shape: [121, 145, 121]
+        scale:
+          _target_: builtins.tuple
+          _args_:
+            - [0.6, 1.0]
+        p: 1.0
+      - _target_: nidl.volume.transforms.preprocessing.CropOrPad
+        target_shape: ${experiment.img_size}
+      - _target_: nidl.volume.transforms.augmentation.RandomFlip
+        axes: 0
+        flip_probability: 0.5
+      - _target_: nidl.volume.transforms.augmentation.RandomBiasFieldFast
+        coefficients:
+          _target_: builtins.tuple
+          _args_:
+            - [-0.3, 0.3]
+        order: 3
+        p: 0.5
+      - _target_: nidl.volume.transforms.preprocessing.RobustRescaling
+        out_min_max:
+          _target_: builtins.tuple
+          _args_:
+            - [0, 1.0]
+        percentiles:
+          _target_: builtins.tuple
+          _args_:
+            - [0.5, 99.5]
+      - _target_: nidl.volume.transforms.augmentation.RandomContrastAdjust
+        contrast_factor:
+          _target_: builtins.tuple
+          _args_:
+            - [0.6, 1.5]
+        brightness_factor:
+          _target_: builtins.tuple
+          _args_:
+            - [-1.0, 1.0]
+        output_range:
+          _target_: builtins.tuple
+          _args_:
+            - [0.0, 1.0]
+        p: 0.5
+      - _target_: nidl.volume.transforms.augmentation.RandomNoiseFast
+        mean: 0.0
+        std:    
+          _target_: builtins.tuple
+          _args_:
+            - [0.0, 0.1]
+        noise_downsampling_factor: 2
+        p: 0.5
+  n_views: 2

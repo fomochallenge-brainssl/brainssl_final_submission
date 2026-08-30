@@ -1,0 +1,84 @@
+defaults:
+  - _self_
+
+name: SEG009_FOMO26_Meningioma
+
+modality_slots: [0, 5]
+
+dataset:
+  _target_: src.data.FOMO26Dataset
+  _partial_: true
+  rootdir: ${oc.env:FOMO_FINETUNING_DATA_ROOT}
+  df: processed_data/SEG009_FOMO26_Meningioma/participants.tsv
+  n_modalities: 2
+  num_classes: 2
+  folds: processed_data/SEG009_FOMO26_Meningioma/split_10foldsMCCV_20260724.json
+  folds_cols: participant_id
+  image_col: image_path
+  task_type: segmentation
+  name: SEG009_FOMO26_Meningioma
+
+probing:
+  finetuning_callbacks:
+    - _target_: pytorch_lightning.callbacks.EarlyStopping
+      monitor: val_loss
+      patience: 5
+      mode: min
+  finetuning: true
+  freeze_encoder: true
+  finetuning_kwargs:
+    lr: 5.0e-4
+    encoder_lr_ratio: 0.1
+    weight_decay: 1.0e-3
+    max_epochs: 50
+    devices: 1
+    num_sanity_val_steps: 0
+    enable_progress_bar: false
+    accumulate_grad_batches: 1
+    gradient_clip_val: 0.8
+    dice_weight: 0.7
+    region_loss: dice
+    check_val_every_n_epoch: 1
+    log_every_n_steps: 2
+    lr_scheduler_params:
+      warmup_epochs: 5
+      warmup_start_lr: 1.0e-6
+      eta_min: 0
+      last_epoch: -1
+  batch_size: 4
+  num_workers: 4
+  pin_memory: true
+  # Move results out of scripts folder
+  results_dir: ${oc.env:PROJECT_ROOT}/outputs/results/
+  random_state: 42
+  fold: 0
+  task_dir: ${task.name}/${task.probing.fold}
+  augmentation_transform:
+    _target_: src.probing.data_augmentation.compose.default_segmentation_augmentation_v4
+    target_shape: ${eval.target_shape}
+    p_keep_label: 1
+  use_augmentation_on_val: true
+  # Resample only: no resizing, so sliding-window inference sees the native resolution
+  trainval_transform:
+    _target_: src.preprocessing.forward.ForwardPreprocessing
+    resample_target_spacing: 1.0
+    target_shape: null
+    resizing_method: null
+    image_interpolation: bspline
+    label_interpolation: nearest
+    normalization_transform:
+      _target_: nidl.volume.transforms.preprocessing.RobustRescaling
+      out_min_max:
+        _target_: builtins.tuple
+        _args_:
+          - [0.0, 1.0]
+      percentiles:
+        _target_: builtins.tuple
+        _args_:
+          - [0.5, 99.5]
+  test_transform: ${task.probing.trainval_transform}
+  sliding_window:
+    enabled: true
+    patch_size: ${eval.target_shape}
+    overlap: 0.3
+    sw_batch_size: 5

@@ -1,0 +1,6 @@
+nidl@git+https://github.com/fomochallenge-brainssl/nidl.git
+torch>=2.1.0,<2.8.0
+pytorch-lightning
+hydra-core>=1.3.2,<2
+python-dotenv>=0.20.0
+wandb
